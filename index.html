@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Life Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#14213d;--mute:#5d6b82;--line:#d9e0ea;--brand:#2b3a8f;--on:#fff;--warn:#b45309;--warnbg:#fff1d6;--bad:#b42318;--badbg:#fde4e1;--ok:#17724a;--okbg:#dff5e8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1424;--card:#171f36;--ink:#e8edf7;--mute:#97a4bf;--line:#2a3555;--brand:#8ea2ff;--on:#0e1424;--warn:#fbbf5a;--warnbg:#3a2a0c;--bad:#ff8f84;--badbg:#3b1613;--ok:#6fe0a6;--okbg:#10321f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1424;--card:#171f36;--ink:#e8edf7;--mute:#97a4bf;--line:#2a3555;--brand:#8ea2ff;--on:#0e1424;--warn:#fbbf5a;--warnbg:#3a2a0c;--bad:#ff8f84;--badbg:#3b1613;--ok:#6fe0a6;--okbg:#10321f;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;line-height:1.45}
+.app{max-width:560px;margin:0 auto;padding:16px 16px 96px}
+h1{font-size:26px;font-weight:800;margin:8px 0 2px}
+.sub{color:var(--mute);margin:0 0 16px;font-size:14px}
+.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
+.tabs button{flex:1;border:0;background:none;color:var(--mute);font:600 13px inherit;font-family:inherit;padding:10px 4px;border-radius:10px;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--brand);background:var(--bg)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.stat{display:flex;gap:10px;margin-bottom:16px}
+.stat div{flex:1;background:var(--brand);color:var(--on);border-radius:14px;padding:14px}
+.stat b{display:block;font-size:24px;font-weight:800}
+.stat span{font-size:12px;opacity:.85}
+h2{font-size:15px;margin:20px 0 8px}
+.item{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
+.thumb{width:44px;height:44px;border-radius:8px;background:var(--bg);object-fit:cover;flex:none;display:grid;place-items:center;font-size:20px}
+.grow{flex:1;min-width:0}
+.grow b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grow small{color:var(--mute)}
+.pill{font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.ok{background:var(--okbg);color:var(--ok)}.warn{background:var(--warnbg);color:var(--warn)}.bad{background:var(--badbg);color:var(--bad)}
+.del{border:0;background:none;color:var(--mute);font-size:18px;cursor:pointer;padding:6px}
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:18px;color:var(--mute);text-align:center;font-size:14px}
+form{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:16px;display:grid;gap:10px}
+label{font-size:13px;font-weight:600;color:var(--mute);display:grid;gap:4px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;width:100%}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{background:var(--brand);color:var(--on);border:0;border-radius:10px;padding:12px;font:800 15px inherit;font-family:inherit;cursor:pointer}
+.btn.ghost{background:var(--bg);color:var(--ink);border:1px solid var(--line);font-weight:600}
+.lock{position:fixed;inset:0;background:var(--bg);z-index:20;display:grid;place-items:center;padding:24px}
+.lock>div{width:100%;max-width:320px;display:grid;gap:12px;text-align:center}
+.hide{display:none!important}
+.note{font-size:12px;color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="lock hide" id="lock"><div>
+  <h1>Life Admin</h1>
+  <p class="sub" id="lockmsg">Enter your PIN</p>
+  <input id="pin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" aria-label="PIN">
+  <button class="btn" id="unlock" type="button">Unlock</button>
+</div></div>
+
+<div class="app">
+  <section id="home"></section>
+  <section id="docs" class="hide"></section>
+  <section id="subs" class="hide"></section>
+  <section id="more" class="hide"></section>
+</div>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-t="home" aria-selected="true">Home</button>
+  <button role="tab" data-t="docs" aria-selected="false">Documents</button>
+  <button role="tab" data-t="subs" aria-selected="false">Renewals</button>
+  <button role="tab" data-t="more" aria-selected="false">Settings</button>
+</nav>
+
+<script>
+var KEY="lifeadmin.v1";
+var S={docs:[],subs:[],pin:""};
+try{var raw=localStorage.getItem(KEY);if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){alert("Storage is full or blocked. Download a backup from Settings.")}resched()}
+var $=function(id){return document.getElementById(id)};
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function today(){var d=new Date();d.setHours(0,0,0,0);return d}
+function daysTo(s){return Math.round((new Date(s+"T00:00:00")-today())/864e5)}
+function fmt(s){return new Date(s+"T00:00:00").toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
+function money(n){return "₹"+Math.round(n).toLocaleString("en-IN")}
+function status(d){
+  if(d<0)return{c:"bad",t:"Expired "+(-d)+"d ago"};
+  if(d===0)return{c:"bad",t:"Today"};
+  if(d<=30)return{c:d<=7?"bad":"warn",t:"In "+d+" days"};
+  return{c:"ok",t:"In "+d+" days"}
+}
+var ICON={"Aadhaar":"🪪","PAN card":"💳","Passport":"🛂","Driving licence":"🚗","Vehicle RC":"🚙","Voter ID":"🗳️","Insurance":"🛡️","Warranty":"🧾","Rent agreement":"🏠","Other":"📄"};
+var CATS=Object.keys(ICON);
+
+/* subscriptions: roll renewal date forward if it passed */
+function nextDate(s){
+  var d=new Date(s.date+"T00:00:00"),t=today(),n=0;
+  while(d<t&&n<600){
+    if(s.cycle==="weekly")d.setDate(d.getDate()+7);
+    else if(s.cycle==="yearly")d.setFullYear(d.getFullYear()+1);
+    else if(s.cycle==="quarterly")d.setMonth(d.getMonth()+3);
+    else d.setMonth(d.getMonth()+1);
+    n++
+  }
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")
+}
+function monthly(s){var a=+s.amount||0;return s.cycle==="weekly"?a*52/12:s.cycle==="yearly"?a/12:s.cycle==="quarterly"?a/3:a}
+
+function docRow(d,del){
+  var st=status(daysTo(d.date));
+  return '<div class="item">'+(d.img?'<img class="thumb" alt="" src="'+d.img+'">':'<div class="thumb">'+(ICON[d.cat]||"📄")+'</div>')+
+  '<div class="grow"><b>'+esc(d.name)+'</b><small>'+esc(d.cat)+' · '+fmt(d.date)+'</small></div>'+
+  '<span class="pill '+st.c+'">'+st.t+'</span>'+(del?'<button class="del" aria-label="Delete '+esc(d.name)+'" data-deldoc="'+d.id+'">✕</button>':'')+'</div>'
+}
+function subRow(s,del){
+  var nd=nextDate(s),st=status(daysTo(nd));
+  return '<div class="item"><div class="thumb">🔁</div><div class="grow"><b>'+esc(s.name)+'</b><small>'+money(s.amount)+' / '+s.cycle+' · renews '+fmt(nd)+'</small></div>'+
+  '<span class="pill '+st.c+'">'+st.t+'</span>'+(del?'<button class="del" aria-label="Delete '+esc(s.name)+'" data-delsub="'+s.id+'">✕</button>':'')+'</div>'
+}
+
+function renderHome(){
+  var tot=S.subs.reduce(function(a,s){return a+monthly(s)},0);
+  var soon=[];
+  S.docs.forEach(function(d){var n=daysTo(d.date);if(n<=30)soon.push({n:n,h:docRow(d)})});
+  S.subs.forEach(function(s){var n=daysTo(nextDate(s));if(n<=30)soon.push({n:n,h:subRow(s)})});
+  soon.sort(function(a,b){return a.n-b.n});
+  $("home").innerHTML='<h1>Life Admin</h1><p class="sub">Documents and renewals, all in one place.</p>'+
+  '<div class="stat"><div><b>'+S.docs.length+'</b><span>Documents saved</span></div><div><b>'+money(tot)+'</b><span>Spent per month</span></div></div>'+
+  '<h2>Needs attention in the next 30 days</h2>'+
+  (soon.length?soon.map(function(x){return x.h}).join(""):'<div class="empty">Nothing is due soon. Add documents and renewals to start tracking.</div>')
+}
+
+function renderDocs(){
+  var list=S.docs.slice().sort(function(a,b){return a.date<b.date?-1:1});
+  $("docs").innerHTML='<h1>Documents</h1><p class="sub">Photos stay on this device.</p>'+
+  '<form id="docform"><label>Name<input name="name" required placeholder="Passport"></label>'+
+  '<div class="row"><label>Category<select name="cat">'+CATS.map(function(c){return"<option>"+c+"</option>"}).join("")+'</select></label>'+
+  '<label>Expiry date<input name="date" type="date" required></label></div>'+
+  '<label>Photo (optional)<input name="img" type="file" accept="image/*"></label>'+
+  '<button class="btn" type="submit">Save document</button></form>'+
+  (list.length?list.map(function(d){return docRow(d,true)}).join(""):'<div class="empty">No documents yet. Add your first one above.</div>');
+  $("docform").onsubmit=function(e){
+    e.preventDefault();var f=e.target,fd=new FormData(f),file=f.img.files[0];
+    var rec={id:Date.now(),name:fd.get("name").trim(),cat:fd.get("cat"),date:fd.get("date")};
+    function done(){S.docs.push(rec);save();renderAll()}
+    if(!file)return done();
+    var r=new FileReader();
+    r.onload=function(){var im=new Image();im.onload=function(){
+      var c=document.createElement("canvas"),k=Math.min(1,640/Math.max(im.width,im.height));
+      c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+      rec.img=c.toDataURL("image/jpeg",.7);done()};im.onerror=done;im.src=r.result};
+    r.readAsDataURL(file)
+  }
+}
+
+function renderSubs(){
+  var list=S.subs.slice().sort(function(a,b){return nextDate(a)<nextDate(b)?-1:1});
+  $("subs").innerHTML='<h1>Renewals</h1><p class="sub">Subscriptions, EMIs, bills and insurance.</p>'+
+  '<form id="subform"><label>Name<input name="name" required placeholder="Netflix"></label>'+
+  '<div class="row"><label>Amount (₹)<input name="amount" type="number" min="0" step="any" required></label>'+
+  '<label>Repeats<select name="cycle"><option>monthly</option><option>yearly</option><option>quarterly</option><option>weekly</option></select></label></div>'+
+  '<label>Next renewal date<input name="date" type="date" required></label>'+
+  '<button class="btn" type="submit">Save renewal</button></form>'+
+  (list.length?list.map(function(s){return subRow(s,true)}).join(""):'<div class="empty">No renewals yet. Add one above.</div>');
+  $("subform").onsubmit=function(e){
+    e.preventDefault();var fd=new FormData(e.target);
+    S.subs.push({id:Date.now(),name:fd.get("name").trim(),amount:+fd.get("amount"),cycle:fd.get("cycle"),date:fd.get("date")});
+    save();renderAll()
+  }
+}
+
+function renderMore(){
+  $("more").innerHTML='<h1>Settings</h1><p class="sub">Your data lives only on this phone. Open the app at least once a month so reminders stay up to date.</p>'+
+  '<form id="pinform"><label>App lock PIN (4-6 digits)<input name="pin" type="password" inputmode="numeric" maxlength="6" placeholder="'+(S.pin?"PIN is set":"No PIN")+'"></label>'+
+  '<button class="btn" type="submit">Save PIN</button>'+(S.pin?'<button class="btn ghost" type="button" id="nopin">Remove PIN</button>':'')+
+  '<span class="note">The PIN hides the app screen. It does not encrypt your data.</span></form>'+
+  '<form><button class="btn" type="button" id="exp">Download backup</button>'+
+  '<label>Restore from backup<input type="file" id="imp" accept=".json"></label></form>'+
+  '<form><button class="btn ghost" type="button" id="theme">Switch light / dark</button></form>';
+  $("pinform").onsubmit=function(e){e.preventDefault();var p=e.target.pin.value;
+    if(!/^\d{4,6}$/.test(p)){alert("Use 4 to 6 digits.");return}S.pin=p;save();renderMore();alert("PIN saved.")};
+  if($("nopin"))$("nopin").onclick=function(){S.pin="";save();renderMore()};
+  $("exp").onclick=async function(){
+    var json=JSON.stringify(S);
+    if(N){
+      try{
+        var r=await Capacitor.Plugins.Filesystem.writeFile({path:"life-admin-backup.json",data:json,directory:"CACHE",encoding:"utf8"});
+        await Capacitor.Plugins.Share.share({title:"Life Admin backup",url:r.uri})
+      }catch(e){alert("Could not share the backup: "+e)}
+      return
+    }
+    var a=document.createElement("a");a.href="data:application/json;charset=utf-8,"+encodeURIComponent(json);
+    a.download="life-admin-backup.json";a.click()};
+  $("imp").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();
+    r.onload=function(){try{var o=JSON.parse(r.result);if(!Array.isArray(o.docs)||!Array.isArray(o.subs))throw 0;S=o;save();renderAll();alert("Backup restored.")}catch(x){alert("That file is not a valid backup.")}};
+    r.readAsText(f)};
+  $("theme").onclick=function(){var r=document.documentElement,dark=r.getAttribute("data-theme")==="dark"||(!r.getAttribute("data-theme")&&matchMedia("(prefers-color-scheme:dark)").matches);
+    r.setAttribute("data-theme",dark?"light":"dark")}
+}
+
+function renderAll(){renderHome();renderDocs();renderSubs();renderMore()}
+
+document.addEventListener("click",function(e){
+  var t=e.target.closest("[data-t]");
+  if(t){["home","docs","subs","more"].forEach(function(k){$(k).classList.toggle("hide",k!==t.dataset.t)});
+    document.querySelectorAll(".tabs button").forEach(function(b){b.setAttribute("aria-selected",b===t)});window.scrollTo(0,0)}
+  var d=e.target.closest("[data-deldoc]"),s=e.target.closest("[data-delsub]");
+  if(d&&confirm("Delete this document?")){S.docs=S.docs.filter(function(x){return x.id!=d.dataset.deldoc});save();renderAll()}
+  if(s&&confirm("Delete this renewal?")){S.subs=S.subs.filter(function(x){return x.id!=s.dataset.delsub});save();renderAll()}
+});
+
+function checkLock(){
+  if(!S.pin)return;
+  $("lock").classList.remove("hide");
+  $("unlock").onclick=function(){if($("pin").value===S.pin){$("lock").classList.add("hide");$("pin").value=""}else{$("lockmsg").textContent="Wrong PIN. Try again."}};
+  $("pin").onkeydown=function(e){if(e.key==="Enter")$("unlock").click()}
+}
+
+var N=(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())?Capacitor.Plugins.LocalNotifications:null;
+function hash(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h)%2000000000}
+async function resched(){
+  if(!N)return;
+  try{
+    var p=await N.checkPermissions();
+    if(p.display!=="granted"){p=await N.requestPermissions();if(p.display!=="granted")return}
+    var pend=await N.getPending();
+    if(pend.notifications.length)await N.cancel({notifications:pend.notifications});
+    var list=[],now=Date.now();
+    function add(key,label,date){
+      [30,7,1,0].forEach(function(b){
+        var at=new Date(date+"T09:00:00");at.setDate(at.getDate()-b);
+        if(at.getTime()>now)list.push({id:hash(key+"-"+b),title:"Life Admin",body:b?label+" in "+b+(b>1?" days":" day"):label+" today",schedule:{at:at,allowWhileIdle:true}})
+      })
+    }
+    S.docs.forEach(function(d){add("d"+d.id,d.name+" expires",d.date)});
+    S.subs.forEach(function(s){add("s"+s.id,s.name+" renews",nextDate(s))});
+    if(list.length)await N.schedule({notifications:list})
+  }catch(e){console.log(e)}
+}
+renderAll();checkLock();resched();
+</script>
+</body>
+</html>
